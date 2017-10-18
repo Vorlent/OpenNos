@@ -21,6 +21,7 @@ using OpenNos.GameObject.Packets.ClientPackets;
 using OpenNos.Master.Library.Client;
 using System;
 using System.Linq;
+using System.Configuration;
 
 namespace OpenNos.Handler
 {
