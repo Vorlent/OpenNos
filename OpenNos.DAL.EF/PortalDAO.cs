@@ -68,6 +68,17 @@ namespace OpenNos.DAL.EF
             }
         }
 
+        public IEnumerable<PortalDTO> LoadAll()
+        {
+            using (OpenNosContext context = DataAccessHelper.CreateContext())
+            {
+                foreach (Portal entity in context.Portal)
+                {
+                    yield return _mapper.Map<PortalDTO>(entity);
+                }
+            }
+        }
+
         public IEnumerable<PortalDTO> LoadByMap(short mapId)
         {
             using (OpenNosContext context = DataAccessHelper.CreateContext())

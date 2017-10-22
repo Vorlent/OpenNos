@@ -34,11 +34,18 @@ namespace OpenNos.GameObject
             OnTraversalEvents = new List<EventContainer>();
         }
 
-        #endregion
+        public Portal(Portal portal) : base(portal)
+        {
+            OnTraversalEvents = new List<EventContainer>();
+            this.destinationMapInstanceId = portal.destinationMapInstanceId;
+            this.sourceMapInstanceId = portal.sourceMapInstanceId;
+        }
 
-        #region Properties
+    #endregion
 
-        public Guid DestinationMapInstanceId
+    #region Properties
+
+    public Guid DestinationMapInstanceId
         {
             get
             {

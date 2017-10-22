@@ -33,9 +33,33 @@ namespace OpenNos.GameObject
         private int _movetime;
         private Random _random;
 
-        #endregion
+        public MapNpc()
+        {
+        }
 
-        #region Properties
+        public MapNpc(MapNpc mapNpc) : base(mapNpc)
+        {
+            this.Npc = mapNpc.Npc;
+            this.EffectActivated = mapNpc.EffectActivated;
+            this.FirstX = mapNpc.FirstX;
+            this.FirstY = mapNpc.FirstY;
+
+            this.IsHostile = mapNpc.IsHostile;
+            this.IsMate = mapNpc.IsMate;
+            this.IsProtected = mapNpc.IsProtected;
+            this.LastEffect = mapNpc.LastEffect;
+            this.LastMove = mapNpc.LastMove;
+
+            this.MapInstance = mapNpc.MapInstance;
+            this.OnDeathEvents = new ConcurrentBag<EventContainer>();
+
+            this.Started = mapNpc.Started;
+            this.IsOut = mapNpc.IsOut;
+    }
+
+    #endregion
+
+    #region Properties
 
         public bool EffectActivated { get; set; }
 
@@ -338,7 +362,6 @@ namespace OpenNos.GameObject
                 }
             }
         }
-
 
         /// <summary>
         /// Remove the current Target from Npc.

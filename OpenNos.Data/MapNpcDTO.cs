@@ -16,6 +16,26 @@ namespace OpenNos.Data
 {
     public class MapNpcDTO : MappingBaseDTO
     {
+        public MapNpcDTO()
+        {
+        }
+
+            public MapNpcDTO(MapNpcDTO mapNpcDTO)
+        {
+            this.Dialog = mapNpcDTO.Dialog;
+            this.Effect = mapNpcDTO.Effect;
+            this.EffectDelay = mapNpcDTO.EffectDelay;
+            this.IsDisabled = mapNpcDTO.IsDisabled;
+            this.IsMoving = mapNpcDTO.IsMoving;
+            this.IsSitting = mapNpcDTO.IsSitting;
+            this.MapId = mapNpcDTO.MapId;
+            this.MapNpcId = mapNpcDTO.MapNpcId;
+            this.MapX = mapNpcDTO.MapX;
+            this.MapY = mapNpcDTO.MapY;
+            this.NpcVNum = mapNpcDTO.NpcVNum;
+            this.Position = mapNpcDTO.Position;
+        }
+
         #region Properties
 
         public short Dialog { get; set; }

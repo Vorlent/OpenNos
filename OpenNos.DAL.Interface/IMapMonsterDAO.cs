@@ -30,6 +30,8 @@ namespace OpenNos.DAL.Interface
 
         void Insert(IEnumerable<MapMonsterDTO> monsters);
 
+        IEnumerable<MapMonsterDTO> LoadAll();
+
         MapMonsterDTO LoadById(int mapMonsterId);
 
         IEnumerable<MapMonsterDTO> LoadFromMap(short MapId);

@@ -16,6 +16,24 @@ namespace OpenNos.Data
 {
     public class PortalDTO : MappingBaseDTO
     {
+
+        public PortalDTO()
+        {
+        }
+
+        public PortalDTO(PortalDTO portalDTO)
+        {
+            this.DestinationMapId = portalDTO.DestinationMapId;
+            this.DestinationX = portalDTO.DestinationX;
+            this.DestinationY = portalDTO.DestinationY;
+            this.IsDisabled = portalDTO.IsDisabled;
+            this.PortalId = portalDTO.PortalId;
+            this.SourceMapId = portalDTO.SourceMapId;
+            this.SourceX = portalDTO.SourceX;
+            this.SourceY = portalDTO.SourceY;
+            this.Type = portalDTO.Type;
+        }
+
         #region Properties
 
         public short DestinationMapId { get; set; }

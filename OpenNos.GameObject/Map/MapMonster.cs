@@ -38,6 +38,32 @@ namespace OpenNos.GameObject
 
         #region Instantiation
 
+        public MapMonster(MapMonster mapMonster) : base(mapMonster)
+        {
+            this.CurrentHp = mapMonster.CurrentHp;
+            this.CurrentMp = mapMonster.CurrentMp;
+            this.Death = mapMonster.Death;
+            this.IsAlive = mapMonster.IsAlive;
+            this.IsBonus = mapMonster.IsBonus;
+            this.IsBoss = mapMonster.IsBoss;
+            this.NoticeRange = mapMonster.NoticeRange;
+            this.IsHostile = mapMonster.IsHostile;
+            this.IsTarget = mapMonster.IsTarget;
+            this.LastEffect = mapMonster.LastEffect;
+            this.LastMove = mapMonster.LastMove;
+            this.LastSkill = mapMonster.LastSkill;
+            this.MapInstance = mapMonster.MapInstance;
+
+            this.ShouldRespawn = mapMonster.ShouldRespawn;
+            this.Started = mapMonster.Started;
+            this.FirstX = mapMonster.FirstX;
+            this.FirstY = mapMonster.FirstY;
+            
+            HitQueue = new ConcurrentQueue<HitRequest>();
+            OnDeathEvents = new List<EventContainer>();
+            OnNoticeEvents = new List<EventContainer>();
+        }
+
         public MapMonster()
         {
             HitQueue = new ConcurrentQueue<HitRequest>();

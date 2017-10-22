@@ -16,6 +16,22 @@ namespace OpenNos.Data
 {
     public class MapMonsterDTO : MappingBaseDTO
     {
+        public MapMonsterDTO()
+        {
+        }
+
+        public MapMonsterDTO(MapMonsterDTO mapMonsterDTO)
+        {
+            this.IsDisabled = mapMonsterDTO.IsDisabled;
+            this.IsMoving = mapMonsterDTO.IsMoving;
+            this.MapId = mapMonsterDTO.MapId;
+            this.MapMonsterId = mapMonsterDTO.MapMonsterId;
+            this.MapX = mapMonsterDTO.MapX;
+            this.MapY = mapMonsterDTO.MapY;
+            this.MonsterVNum = mapMonsterDTO.MonsterVNum;
+            this.Position = mapMonsterDTO.Position;
+        }
+
         #region Properties
 
         public bool IsDisabled { get; set; }

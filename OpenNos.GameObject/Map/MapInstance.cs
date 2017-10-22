@@ -331,6 +331,29 @@ namespace OpenNos.GameObject
             });
         }
 
+        public static void BulkLoadMapMonsters(Dictionary<short, List<MapInstance>> _mapInstancesByMapId)
+        {
+            OrderablePartitioner<MapMonsterDTO> partitioner = Partitioner.Create(DAOFactory.MapMonsterDAO.LoadAll(), EnumerablePartitionerOptions.None);
+            Parallel.ForEach(partitioner, monster =>
+            {
+                List<MapInstance> maps = _mapInstancesByMapId[monster.MapId];
+                if (!(monster is MapMonster mapMonster))
+                {
+                    return;
+                }
+                maps.ForEach(map =>
+                {
+                    MapMonster clonedMonster = new MapMonster(mapMonster);
+                    clonedMonster.Initialize(map);
+                    int mapMonsterId = mapMonster.MapMonsterId;
+                    map._monsters[mapMonsterId] = mapMonster;
+                    map._mapMonsterIds.Add(mapMonsterId);
+                    clonedMonster.MapInstance = map;
+                    map.AddMonster(clonedMonster);
+                });
+            });
+        }
+
         public void LoadNpcs()
         {
             OrderablePartitioner<MapNpcDTO> partitioner = Partitioner.Create(DAOFactory.MapNpcDAO.LoadFromMap(Map.MapId), EnumerablePartitionerOptions.None);
@@ -344,6 +367,30 @@ namespace OpenNos.GameObject
                 int mapNpcId = mapNpc.MapNpcId;
                 _npcs[mapNpcId] = mapNpc;
                 _mapNpcIds.Add(mapNpcId);
+            });
+        }
+
+
+        public static void BulkLoadMapNpcs(Dictionary<short, List<MapInstance>> _mapInstancesByMapId)
+        {
+            OrderablePartitioner<MapNpcDTO> partitioner = Partitioner.Create(DAOFactory.MapNpcDAO.LoadAll(), EnumerablePartitionerOptions.None);
+            Parallel.ForEach(partitioner, npc =>
+            {
+                List<MapInstance> maps = _mapInstancesByMapId[npc.MapId];
+                if (!(npc is MapNpc mapNpc))
+                {
+                    return;
+                }
+                maps.ForEach(map =>
+                {
+                    MapNpc clonedNpc = new MapNpc(mapNpc);
+                    clonedNpc.Initialize(map);
+                    int mapNpcId = clonedNpc.MapNpcId;
+                    map._npcs[mapNpcId] = clonedNpc;
+                    map._mapNpcIds.Add(mapNpcId);
+                    clonedNpc.MapInstance = map;
+                    map.AddNPC(clonedNpc);
+                });
             });
         }
 
@@ -361,6 +408,26 @@ namespace OpenNos.GameObject
                 portalList[portal2.PortalId] = portal2;
             });
             Portals.AddRange(portalList.Select(s => s.Value));
+        }
+
+        public static void BulkLoadPortals(Dictionary<short, List<MapInstance>> _mapInstancesByMapId)
+        {
+            OrderablePartitioner<PortalDTO> partitioner = Partitioner.Create(DAOFactory.PortalDAO.LoadAll(), EnumerablePartitionerOptions.None);
+            ConcurrentDictionary<int, Portal> portalList = new ConcurrentDictionary<int, Portal>();
+            Parallel.ForEach(partitioner, portal =>
+            {
+                List<MapInstance> maps = _mapInstancesByMapId[portal.SourceMapId];
+                if (!(portal is Portal portal2))
+                {
+                    return;
+                }
+                maps.ForEach(map =>
+                {
+                    Portal clonedPortal = new Portal(portal2);
+                    clonedPortal.SourceMapInstanceId = map.MapInstanceId;
+                    map.Portals.Add(clonedPortal);
+                });
+            });
         }
 
         public void MapClear()

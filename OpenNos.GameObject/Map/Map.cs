@@ -237,7 +237,6 @@ namespace OpenNos.GameObject
 
         private void LoadZone()
         {
-            // TODO: Optimize
             using (Stream stream = new MemoryStream(Data))
             {
                 const int numBytesToRead = 1;

@@ -40,6 +40,11 @@ namespace OpenNos.DAL.Mock
             throw new NotImplementedException();
         }
 
+        public new IEnumerable<MapMonsterDTO> LoadAll()
+        {
+            throw new NotImplementedException();
+        }
+
         public MapMonsterDTO LoadById(int mapMonsterId)
         {
             return Container.SingleOrDefault(m => m.MapMonsterId == mapMonsterId);

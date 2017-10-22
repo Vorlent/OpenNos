@@ -1055,6 +1055,22 @@ namespace OpenNos.GameObject
                 }
             });
             _items.AddRange(item.Select(s => s.Value));
+            
+            DAOFactory.BCardDAO.LoadAll().ToList().ForEach(o => {
+                if(o.ItemVNum is short vnum) {
+                    if(item[vnum] != null) {
+                        item[vnum].BCards.Add((BCard)o);
+                    }
+                }
+            });
+
+            DAOFactory.RollGeneratedItemDAO.LoadAll().ToList().ForEach(o => {
+                if (item[o.OriginalItemVNum] != null)
+                {
+                    item[o.OriginalItemVNum].RollGeneratedItems.Add(o);
+                }
+            });
+
             stopwatch.Stop();
             Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("ITEMS_LOADED"), _items.Count) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
             stopwatch.Restart();
@@ -1102,7 +1118,15 @@ namespace OpenNos.GameObject
                 {
                     monster.BCards = new List<BCard>();
                 }
-                DAOFactory.BCardDAO.LoadByNpcMonsterVNum(npcMonster.NpcMonsterVNum).ToList().ForEach(s => npcMonsters[npcMonster.NpcMonsterVNum].BCards.Add((BCard)s));
+            });
+            DAOFactory.BCardDAO.LoadAll().ToList().ForEach(s => {
+                if (s.NpcMonsterVNum is short NpcMonsterVNum) {
+                    NpcMonster monster = npcMonsters[NpcMonsterVNum];
+                    if (monster != null)
+                    {
+                        monster.BCards.Add((BCard)s);
+                    }
+                }
             });
             _npcs.AddRange(npcMonsters.Select(s => s.Value));
             stopwatch.Stop();
@@ -1169,8 +1193,18 @@ namespace OpenNos.GameObject
                 }
                 skillObj.Combos.AddRange(DAOFactory.ComboDAO.LoadBySkillVnum(skillObj.SkillVNum).ToList());
                 skillObj.BCards = new ConcurrentBag<BCard>();
-                DAOFactory.BCardDAO.LoadBySkillVNum(skillObj.SkillVNum).ToList().ForEach(o => skillObj.BCards.Add((BCard)o));
                 _skill[skillObj.SkillVNum] = skillObj;
+            });
+            DAOFactory.BCardDAO.LoadAll().ToList().ForEach(o =>
+            {
+                if (o.SkillVNum is short SkillVNum)
+                {
+                    Skill skill = _skill[SkillVNum];
+                    if (skill != null)
+                    {
+                        skill.BCards.Add((BCard)o);
+                    }
+                }
             });
             _skills.AddRange(_skill.Select(s => s.Value));
             stopwatch.Stop();
@@ -1207,6 +1241,7 @@ namespace OpenNos.GameObject
                 int monstercount = 0;
                 OrderablePartitioner<MapDTO> mapPartitioner = Partitioner.Create(DAOFactory.MapDAO.LoadAll(), EnumerablePartitionerOptions.NoBuffering);
                 ConcurrentDictionary<short, Map> _mapList = new ConcurrentDictionary<short, Map>();
+                ConcurrentDictionary<Guid, short> _mapIdByGuid = new ConcurrentDictionary<Guid, short>();
                 Parallel.ForEach(mapPartitioner, new ParallelOptions { MaxDegreeOfParallelism = 8 }, map =>
                 {
                     Guid guid = Guid.NewGuid();
@@ -1217,24 +1252,33 @@ namespace OpenNos.GameObject
                     _mapList[map.MapId] = mapinfo;
                     MapInstance newMap = new MapInstance(mapinfo, guid, map.ShopAllowed, MapInstanceType.BaseMapInstance, new InstanceBag());
                     _mapinstances.TryAdd(guid, newMap);
-
-                    Task.Run(() => newMap.LoadPortals());
-                    newMap.LoadNpcs();
-                    newMap.LoadMonsters();
-
-                    Parallel.ForEach(newMap.Npcs, mapNpc =>
-                    {
-                        mapNpc.MapInstance = newMap;
-                        newMap.AddNPC(mapNpc);
-                    });
-                    Parallel.ForEach(newMap.Monsters, mapMonster =>
-                    {
-                        mapMonster.MapInstance = newMap;
-                        newMap.AddMonster(mapMonster);
-                    });
-                    monstercount += newMap.Monsters.Count;
+                    _mapIdByGuid.TryAdd(guid, map.MapId);
                     i++;
                 });
+
+                Dictionary<short, List<MapInstance>> _mapInstancesByMapId = new Dictionary<short, List<MapInstance>>();
+                _mapinstances.ToList().ForEach(pair =>
+                {
+                    short mapId = _mapIdByGuid[pair.Value.MapInstanceId];
+                    List<MapInstance> list;
+                    if (!_mapInstancesByMapId.TryGetValue(mapId, out list))
+                    {
+                        list = new List<MapInstance>();
+                    }
+                    list.Add(pair.Value);
+                    _mapInstancesByMapId[mapId] = list;
+
+                    monstercount += pair.Value.Monsters.Count;
+                });
+
+                MapInstance.BulkLoadPortals(_mapInstancesByMapId);
+                MapInstance.BulkLoadMapNpcs(_mapInstancesByMapId);
+                MapInstance.BulkLoadMapMonsters(_mapInstancesByMapId);
+
+                _mapinstances.ToList().ForEach(pair => {
+                    monstercount += pair.Value.Monsters.Count;
+                });
+
                 _maps.AddRange(_mapList.Select(s => s.Value));
                 if (i != 0)
                 {
@@ -1248,9 +1292,7 @@ namespace OpenNos.GameObject
                     Logger.Log.Error(Language.Instance.GetMessageFromKey("NO_MAP"));
                     stopwatch.Restart();
                 }
-                stopwatch.Stop();
-                Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("MAPMONSTERS_LOADED"), monstercount) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
-                stopwatch.Restart();
+                Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("MAPMONSTERS_LOADED"), monstercount));
 
                 StartedEvents = new List<EventType>();
                 LoadFamilies();
@@ -1316,7 +1358,7 @@ namespace OpenNos.GameObject
                             SourceY = 171,
                             SourceMapId = 153,
                             IsDisabled = false,
-                            Type = (short) PortalType.MapPortal
+                            Type = (short)PortalType.MapPortal
                         });
                         // DEMON
                         act4Map.Portals.Add(new Portal
@@ -1328,7 +1370,7 @@ namespace OpenNos.GameObject
                             SourceY = 171,
                             SourceMapId = 153,
                             IsDisabled = false,
-                            Type = (short) PortalType.MapPortal
+                            Type = (short)PortalType.MapPortal
                         });
                     }
                     // TODO REMOVE THAT FOR RELEASE

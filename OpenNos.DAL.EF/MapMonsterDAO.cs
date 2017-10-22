@@ -101,6 +101,17 @@ namespace OpenNos.DAL.EF
             }
         }
 
+        public IEnumerable<MapMonsterDTO> LoadAll()
+        {
+            using (OpenNosContext context = DataAccessHelper.CreateContext())
+            {
+                foreach (MapMonster entity in context.MapMonster)
+                {
+                    yield return _mapper.Map<MapMonsterDTO>(entity);
+                }
+            }
+        }
+
         public MapMonsterDTO LoadById(int mapMonsterId)
         {
             try
