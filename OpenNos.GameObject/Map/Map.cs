@@ -257,15 +257,17 @@ namespace OpenNos.GameObject
                 YLength = BitConverter.ToInt16(ylength, 0);
                 XLength = BitConverter.ToInt16(xlength, 0);
 
+                byte[] buffer = new byte[XLength];
                 Grid = new GridPos[XLength, YLength];
                 for (short i = 0; i < YLength; ++i)
                 {
+                    stream.Read(buffer, 0, XLength);
+
                     for (short t = 0; t < XLength; ++t)
                     {
-                        stream.Read(bytes, numBytesRead, numBytesToRead);
                         Grid[t, i] = new GridPos()
                         {
-                            Value = bytes[0],
+                            Value = buffer[t],
                             X = t,
                             Y = i,
                         };

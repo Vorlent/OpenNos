@@ -70,6 +70,7 @@
     <Compile Include="Act4RaidType.cs" />
     <Compile Include="BazaarListType.cs" />
     <Compile Include="ChatType.cs" />
+    <Compile Include="ElementType.cs" />
     <Compile Include="FactionType.cs" />
     <Compile Include="LoginFailType.cs" />
     <Compile Include="ShellOptionType.cs" />

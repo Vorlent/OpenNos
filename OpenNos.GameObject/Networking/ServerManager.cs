@@ -30,6 +30,7 @@ using System.Reflection;
 using System.Runtime.Remoting.Channels;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics;
 using OpenNos.GameObject.Event;
 
 namespace OpenNos.GameObject
@@ -921,6 +922,9 @@ namespace OpenNos.GameObject
 
         public void Initialize()
         {
+            Stopwatch stopwatch = new Stopwatch();
+
+            stopwatch.Start();
             // parse rates
             XPRate = int.Parse(ConfigurationManager.AppSettings["RateXp"]);
             HeroXpRate = int.Parse(ConfigurationManager.AppSettings["RateXpHero"]);
@@ -940,8 +944,15 @@ namespace OpenNos.GameObject
             Act4AngelStat = new Act4Stat();
             Act4DemonStat = new Act4Stat();
 
-            OrderablePartitioner<ItemDTO> itemPartitioner = Partitioner.Create(DAOFactory.ItemDAO.LoadAll(), EnumerablePartitionerOptions.NoBuffering);
+            stopwatch.Stop();
+            stopwatch.Restart();
+
+            OrderablePartitioner<ItemDTO> itemPartitioner = Partitioner.Create(DAOFactory.ItemDAO.LoadAll(), EnumerablePartitionerOptions.None);
             ConcurrentDictionary<short, Item> item = new ConcurrentDictionary<short, Item>();
+
+            stopwatch.Stop();
+            stopwatch.Restart();
+            
             Parallel.ForEach(itemPartitioner, new ParallelOptions { MaxDegreeOfParallelism = 4 }, itemDto =>
             {
                 switch (itemDto.ItemType)
@@ -1044,7 +1055,9 @@ namespace OpenNos.GameObject
                 }
             });
             _items.AddRange(item.Select(s => s.Value));
-            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("ITEMS_LOADED"), _items.Count));
+            stopwatch.Stop();
+            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("ITEMS_LOADED"), _items.Count) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
+            stopwatch.Restart();
 
             // intialize monsterdrops
             _monsterDrops = new ConcurrentDictionary<short, List<DropDTO>>();
@@ -1059,7 +1072,9 @@ namespace OpenNos.GameObject
                     _generalDrops = monsterDropGrouping.ToList();
                 }
             });
-            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("DROPS_LOADED"), _monsterDrops.Sum(i => i.Value.Count)));
+            stopwatch.Stop();
+            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("DROPS_LOADED"), _monsterDrops.Sum(i => i.Value.Count)) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
+            stopwatch.Restart();
 
             // initialize monsterskills
             _monsterSkills = new ConcurrentDictionary<short, List<NpcMonsterSkill>>();
@@ -1067,11 +1082,15 @@ namespace OpenNos.GameObject
             {
                 _monsterSkills[monsterSkillGrouping.Key] = monsterSkillGrouping.Select(n => n as NpcMonsterSkill).ToList();
             });
-            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("MONSTERSKILLS_LOADED"), _monsterSkills.Sum(i => i.Value.Count)));
+            stopwatch.Stop();
+            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("MONSTERSKILLS_LOADED"), _monsterSkills.Sum(i => i.Value.Count)) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
+            stopwatch.Restart();
 
             // initialize Families
             LoadBazaar();
-            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("BAZAR_LOADED"), _monsterSkills.Sum(i => i.Value.Count)));
+            stopwatch.Stop();
+            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("BAZAR_LOADED"), _monsterSkills.Sum(i => i.Value.Count)) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
+            stopwatch.Restart();
 
             // initialize npcmonsters
             ConcurrentDictionary<short, NpcMonster> npcMonsters = new ConcurrentDictionary<short, NpcMonster>();
@@ -1086,7 +1105,9 @@ namespace OpenNos.GameObject
                 DAOFactory.BCardDAO.LoadByNpcMonsterVNum(npcMonster.NpcMonsterVNum).ToList().ForEach(s => npcMonsters[npcMonster.NpcMonsterVNum].BCards.Add((BCard)s));
             });
             _npcs.AddRange(npcMonsters.Select(s => s.Value));
-            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("NPCMONSTERS_LOADED"), _npcs.Count));
+            stopwatch.Stop();
+            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("NPCMONSTERS_LOADED"), _npcs.Count) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
+            stopwatch.Restart();
 
             // intialize recipes
             _recipes = new ConcurrentDictionary<int, List<Recipe>>();
@@ -1094,7 +1115,9 @@ namespace OpenNos.GameObject
             {
                 _recipes[recipeGrouping.Key] = recipeGrouping.Select(r => r as Recipe).ToList();
             });
-            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("RECIPES_LOADED"), _recipes.Sum(i => i.Value.Count)));
+            stopwatch.Stop();
+            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("RECIPES_LOADED"), _recipes.Sum(i => i.Value.Count)) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
+            stopwatch.Restart();
 
             // initialize shopitems
             _shopItems = new ConcurrentDictionary<int, List<ShopItemDTO>>();
@@ -1102,7 +1125,9 @@ namespace OpenNos.GameObject
             {
                 _shopItems[shopItemGrouping.Key] = shopItemGrouping.ToList();
             });
-            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("SHOPITEMS_LOADED"), _shopItems.Sum(i => i.Value.Count)));
+            stopwatch.Stop();
+            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("SHOPITEMS_LOADED"), _shopItems.Sum(i => i.Value.Count)) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
+            stopwatch.Restart();
 
             // initialize shopskills
             _shopSkills = new ConcurrentDictionary<int, List<ShopSkillDTO>>();
@@ -1110,7 +1135,9 @@ namespace OpenNos.GameObject
             {
                 _shopSkills[shopSkillGrouping.Key] = shopSkillGrouping.ToList();
             });
-            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("SHOPSKILLS_LOADED"), _shopSkills.Sum(i => i.Value.Count)));
+            stopwatch.Stop();
+            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("SHOPSKILLS_LOADED"), _shopSkills.Sum(i => i.Value.Count)) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
+            stopwatch.Restart();
 
             // initialize shops
             _shops = new ConcurrentDictionary<int, Shop>();
@@ -1118,7 +1145,9 @@ namespace OpenNos.GameObject
             {
                 _shops[shopGrouping.MapNpcId] = (Shop)shopGrouping;
             });
-            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("SHOPS_LOADED"), _shops.Count));
+            stopwatch.Stop();
+            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("SHOPS_LOADED"), _shops.Count) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
+            stopwatch.Restart();
 
             // initialize teleporters
             _teleporters = new ConcurrentDictionary<int, List<TeleporterDTO>>();
@@ -1126,7 +1155,9 @@ namespace OpenNos.GameObject
             {
                 _teleporters[teleporterGrouping.Key] = teleporterGrouping.Select(t => t).ToList();
             });
-            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("TELEPORTERS_LOADED"), _teleporters.Sum(i => i.Value.Count)));
+            stopwatch.Stop();
+            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("TELEPORTERS_LOADED"), _teleporters.Sum(i => i.Value.Count)) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
+            stopwatch.Restart();
 
             // initialize skills
             ConcurrentDictionary<short, Skill> _skill = new ConcurrentDictionary<short, Skill>();
@@ -1142,7 +1173,9 @@ namespace OpenNos.GameObject
                 _skill[skillObj.SkillVNum] = skillObj;
             });
             _skills.AddRange(_skill.Select(s => s.Value));
-            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("SKILLS_LOADED"), _skills.Count));
+            stopwatch.Stop();
+            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("SKILLS_LOADED"), _skills.Count) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
+            stopwatch.Restart();
 
             // initialize buffs
             Cards = new List<Card>();
@@ -1154,8 +1187,9 @@ namespace OpenNos.GameObject
                 Cards.Add(card);
             }
 
-
-            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("CARDS_LOADED"), _skills.Count));
+            stopwatch.Stop();
+            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("CARDS_LOADED"), _skills.Count) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
+            stopwatch.Restart();
 
             // intialize mapnpcs
             _mapNpcs = new ConcurrentDictionary<short, List<MapNpc>>();
@@ -1163,7 +1197,9 @@ namespace OpenNos.GameObject
             {
                 _mapNpcs[mapNpcGrouping.Key] = mapNpcGrouping.Select(t => t as MapNpc).ToList();
             });
-            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("MAPNPCS_LOADED"), _mapNpcs.Sum(i => i.Value.Count)));
+            stopwatch.Stop();
+            Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("MAPNPCS_LOADED"), _mapNpcs.Sum(i => i.Value.Count)) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
+            stopwatch.Restart();
 
             try
             {
@@ -1202,13 +1238,19 @@ namespace OpenNos.GameObject
                 _maps.AddRange(_mapList.Select(s => s.Value));
                 if (i != 0)
                 {
-                    Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("MAPS_LOADED"), i));
+                    stopwatch.Stop();
+                    Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("MAPS_LOADED"), i) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
+                    stopwatch.Restart();
                 }
                 else
                 {
+                    stopwatch.Stop();
                     Logger.Log.Error(Language.Instance.GetMessageFromKey("NO_MAP"));
+                    stopwatch.Restart();
                 }
-                Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("MAPMONSTERS_LOADED"), monstercount));
+                stopwatch.Stop();
+                Logger.Log.Info(string.Format(Language.Instance.GetMessageFromKey("MAPMONSTERS_LOADED"), monstercount) + " (" + stopwatch.ElapsedMilliseconds + "ms)");
+                stopwatch.Restart();
 
                 StartedEvents = new List<EventType>();
                 LoadFamilies();
@@ -1319,13 +1361,15 @@ namespace OpenNos.GameObject
                         }
                     }
                 }
-                Logger.Log.Info($"[ACT4] Initialized");
+                stopwatch.Stop();
+                Logger.Log.Info($"[ACT4] Initialized" + " (" + stopwatch.ElapsedMilliseconds + "ms)");
                 LoadScriptedInstances();
             }
             catch (Exception ex)
             {
                 Logger.Log.Error("General Error", ex);
             }
+            stopwatch.Stop();
 
             //Register the new created TCPIP server to the api
             Guid serverIdentification = Guid.NewGuid();
